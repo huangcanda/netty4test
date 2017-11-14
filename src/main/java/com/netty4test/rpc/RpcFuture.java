@@ -3,7 +3,6 @@ package com.netty4test.rpc;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.LockSupport;
 
 /**
  * 等待信息
@@ -25,7 +24,7 @@ public class RpcFuture {
 	 * @throws Throwable
 	 */
 	public Object get() throws Throwable {
-		lock.await();
+		lock.await(30000, TimeUnit.MILLISECONDS);
 		if(!isResponse){
 			throw new TimeoutException("invokeId "+invokeId+" timeout!");
 		}

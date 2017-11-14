@@ -12,10 +12,6 @@ public class RpcClientTest {
 		final ISayHelloService sayHelloService = RpcClient.referenceService(ISayHelloService.class);
 		final IFileService fileService = RpcClient.referenceService(IFileService.class);
 		RpcClient.startClient("127.0.0.1", 1111);
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-		}
 		for (int j = 0; j < 3; j++) {
 			final int index = j;
 			new Thread(new Runnable() {

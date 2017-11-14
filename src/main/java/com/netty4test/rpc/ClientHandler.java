@@ -15,4 +15,16 @@ public class ClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 		RpcClient.futureMap.remove(response.getInvokeId()).setResponseResult(response.getResult());
 		System.out.println("客户端接受服务端的返回结果"+response);
 	}
+
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		cause.printStackTrace();
+		ctx.close();
+	}
+
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		RpcClient.reConnect();
+		ctx.fireChannelInactive();
+	}
 }

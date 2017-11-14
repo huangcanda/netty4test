@@ -10,6 +10,10 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.Timer;
+import io.netty.util.TimerTask;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -17,6 +21,7 @@ import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,11 +33,22 @@ public class RpcClient {
 	 */
 	public static Map<Long, RpcFuture> futureMap = new ConcurrentHashMap<>();
 
-
+	private static CountDownLatch channelActiveLock =new CountDownLatch(1);
 
 	private static Bootstrap bootstrap;
 
 	private static Channel clientChannel;
+
+	public static Channel getClientChannel() {
+		if(clientChannel==null){
+			try {
+				channelActiveLock.await(30000, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		return clientChannel;
+	}
 
 	public static <T> T referenceService(final Class<T> interfaceClass) {
 		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[]{interfaceClass}, new InvocationHandler() {
@@ -44,7 +60,7 @@ public class RpcClient {
 				request.setArguments(arguments);
 				RpcFuture future = new RpcFuture(request);
 				futureMap.put(request.getInvokeId(), future);
-				clientChannel.writeAndFlush(request);
+				getClientChannel().writeAndFlush(request);
 				return future.get();
 			}
 		});
@@ -55,12 +71,12 @@ public class RpcClient {
 			throw new IllegalArgumentException("Invalid port " + port);
 		bootstrap = new Bootstrap()
 				.group(new NioEventLoopGroup(Runtime.getRuntime().availableProcessors()<< 1))
-				.channel(NioSocketChannel.class)
+				.channel(NioSocketChannel.class).remoteAddress(new InetSocketAddress(host, port))
 				.option(ChannelOption.TCP_NODELAY, true)
 				.handler(new LoggingHandler(LogLevel.INFO));
-		connect(host,port);
+		connect();
 	}
-	public static void connect(String host, int port) {
+	public static void connect() {
 		ChannelFuture future;
 		synchronized (bootstrap) {
 			bootstrap.handler(new ChannelInitializer<Channel>() {
@@ -76,7 +92,7 @@ public class RpcClient {
 					channel.pipeline().addLast(handles);
 				}
 			});
-			future = bootstrap.connect(new InetSocketAddress(host, port));
+			future = bootstrap.connect();
 		}
 		future.addListener(new ChannelFutureListener() {
 			public void operationComplete(ChannelFuture f) throws Exception {
@@ -86,9 +102,24 @@ public class RpcClient {
 					System.out.println("connect server  失败---------");
 				} else {
 					clientChannel = f.channel();
+					channelActiveLock.countDown();
 					System.out.println("connect server  成功---------");
 				}
 			}
 		});
+	}
+	private static Timer timer=new HashedWheelTimer();
+	/**
+	 * 连接断开后定时重连，统一在IO线程执行重连操作
+	 */
+	public static void reConnect() {
+		channelActiveLock =new CountDownLatch(1);
+		timer.newTimeout(new TimerTask() {
+			@Override
+			public void run(Timeout timeout) throws Exception {
+				RpcClient.connect();
+			}
+		},1000, TimeUnit.MILLISECONDS);
+		System.out.println("重新连接中");
 	}
 }
