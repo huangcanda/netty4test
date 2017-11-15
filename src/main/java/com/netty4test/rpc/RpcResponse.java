@@ -3,6 +3,7 @@ package com.netty4test.rpc;
 import java.io.Serializable;
 
 /**
+ * 响应类
  * Created by cd_huang on 2017/11/13.
  */
 public class RpcResponse implements Serializable{

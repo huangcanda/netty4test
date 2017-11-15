@@ -11,6 +11,12 @@ import io.netty.handler.timeout.IdleStateEvent;
  * Created by cd_huang on 2017/11/13.
  */
 public class ServerIdleStateEventHandler extends ChannelInboundHandlerAdapter {
+	/**
+	 * 服务端未接收到心跳的处理，关闭连接
+	 * @param ctx
+	 * @param evt
+	 * @throws Exception
+	 */
 	@Override
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 		if (evt instanceof IdleStateEvent) {
@@ -23,6 +29,13 @@ public class ServerIdleStateEventHandler extends ChannelInboundHandlerAdapter {
 			super.userEventTriggered(ctx, evt);
 		}
 	}
+
+	/**
+	 * 读到客户端发送的心跳包的处理，不传递读事件
+	 * @param ctx
+	 * @param msg
+	 * @throws Exception
+	 */
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if(msg instanceof AbstractByteBuf){

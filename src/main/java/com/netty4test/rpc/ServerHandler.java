@@ -12,6 +12,12 @@ import java.lang.reflect.Method;
  */
 @ChannelHandler.Sharable
 public class ServerHandler extends ChannelInboundHandlerAdapter {
+	/**
+	 * 服务端读到客户端消息的处理
+	 * @param ctx
+	 * @param msg
+	 * @throws Exception
+	 */
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if(msg instanceof RpcRequest){
@@ -34,12 +40,24 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 			System.out.println("服务端处理请求" + request);
 		}
 	}
+
+	/**
+	 * 服务端接受连接事件处理
+	 * @param ctx
+	 * @throws Exception
+	 */
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		System.out.println("RamoteAddress : " + ctx.channel().remoteAddress() + " active !");
 		super.channelActive(ctx);
 	}
 
+	/**
+	 * 服务端异常事件处理
+	 * @param ctx
+	 * @param cause
+	 * @throws Exception
+	 */
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		cause.printStackTrace();

@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * 请求类
  * Created by cd_huang on 2017/11/13.
  */
 public class RpcRequest implements Serializable{

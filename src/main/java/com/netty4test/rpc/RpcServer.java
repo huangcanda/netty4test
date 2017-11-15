@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 服务端核心类
  * Created by cd_huang on 2017/11/13.
  */
 public class RpcServer {
@@ -33,6 +34,10 @@ public class RpcServer {
 		serviceImplMap.put(interfaceClass, serviceImpl);
 	}
 
+	/**
+	 * 服务端启动监听连接
+	 * @param port
+	 */
 	public static void startServer(int port) {
 		if (port <= 0 || port > 65535)
 			throw new IllegalArgumentException("Invalid port " + port);

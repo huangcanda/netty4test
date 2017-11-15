@@ -17,6 +17,13 @@ public class ClientIdleStateEventHandler  extends ChannelInboundHandlerAdapter {
 		buf.writeByte(0);
 		HEARTBEAT = Unpooled.unreleasableBuffer(buf);
 	}
+
+	/**
+	 * 客户端心跳事件的处理，发送心跳包
+	 * @param ctx
+	 * @param evt
+	 * @throws Exception
+	 */
 	@Override
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 		if (evt instanceof IdleStateEvent) {
